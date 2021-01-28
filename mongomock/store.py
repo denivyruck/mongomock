@@ -12,7 +12,7 @@ class RWLock:
     """Lock for enabling multiple readers but only 1 exclusive writer
     to access a resource
 
-    Source: https://code.activestate.com/recipes/577803-reader-writer-lock-with-priority-for-writers/
+    Source: https://cutt.ly/Ij70qaq
     """
 
     def __init__(self):
@@ -25,16 +25,25 @@ class RWLock:
     @contextmanager
     def reader(self):
         self._reader_acquire()
-        yield
-        self._reader_release()
+        try:
+            yield
+        except Exception:
+            raise
+        finally:
+            self._reader_release()
 
     @contextmanager
     def writer(self):
         self._writer_acquire()
-        yield
-        self._writer_release()
+        try:
+            yield
+        except Exception:
+            raise
+        finally:
+            self._writer_release()
 
     def _reader_acquire(self):
+        """Readers should block whenever a writer has acquired"""
         self._readers_queue.acquire()
         self._no_readers.acquire()
         self._read_switch.acquire(self._no_writers)
@@ -57,7 +66,7 @@ class _LightSwitch:
     """An auxiliary "light switch"-like object. The first thread turns on the
     "switch", the last one turns it off (see [1, sec. 4.2.2] for details).
 
-    Source: https://code.activestate.com/recipes/577803-reader-writer-lock-with-priority-for-writers/
+    Source: https://cutt.ly/Ij70qaq
     """
 
     def __init__(self):
